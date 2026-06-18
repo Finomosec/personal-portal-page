@@ -1,4 +1,4 @@
-# Service Portal
+# Personal Portal Page
 
 A small self-hosted landing page for the services running on your home/office network. Renders configurable service cards, with category sections, host/location filters, search, on-demand health checks, and a single-password gate. Matrix-green theme.
 
@@ -81,7 +81,7 @@ The project is small enough that a single `node build` behind a reverse proxy is
 
 ```ini
 [Unit]
-Description=Service Portal
+Description=Personal Portal Page
 After=network.target
 
 [Service]
