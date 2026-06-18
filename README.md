@@ -2,7 +2,7 @@
 
 A small self-hosted landing page for the services running on your home/office network. Renders configurable service cards, with category sections, host/location filters, search, on-demand health checks, and a single-password gate. Matrix-green theme.
 
-![Screenshot](docs/screenshot.png?v2)
+![Screenshot](docs/screenshot-v2.png)
 
 ## Features
 
