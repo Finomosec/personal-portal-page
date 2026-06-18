@@ -1,0 +1,104 @@
+title: Service Portal
+
+# Sample configuration. Replace with your own services.
+#
+# - `title`: shown in the browser tab and as the H1 of the page
+# - `hosts` / `locations`: filter chips; each service references one host
+#   (required) and optionally one location (used for the location badge
+#   on each card and the second filter row)
+
+hosts:
+  server1:  { name: Server 1, shortName: Srv1 }
+  server2:  { name: Server 2, shortName: Srv2 }
+  cloud:    { name: Cloud,    shortName: Cloud }
+
+locations:
+  home:   { name: Home,   shortName: Home }
+  office: { name: Office, shortName: Office }
+
+services:
+  # ---- General (always visible) ----
+  - id: example
+    name: Example Site
+    host: cloud
+    url: https://example.com
+    category: general
+    icon: gear.svg
+    description: Demo entry — replace me
+    healthcheck:
+      url: https://example.com
+
+  - id: github
+    name: GitHub
+    host: cloud
+    url: https://github.com
+    category: general
+    icon: github.svg
+    description: Code hosting
+    healthcheck:
+      url: https://github.com
+
+  - id: wikipedia
+    name: Wikipedia
+    host: cloud
+    url: https://wikipedia.org
+    category: general
+    icon: wikipedia.svg
+    description: Knowledge base
+    healthcheck:
+      url: https://wikipedia.org
+
+  # ---- Management (admin-only) ----
+  - id: router
+    name: Router
+    host: server1
+    location: home
+    url: http://192.168.1.1/
+    category: management
+    icon: gear.svg
+    description: Network gateway
+    healthcheck:
+      url: http://192.168.1.1/
+
+  - id: nas
+    name: NAS
+    host: server2
+    location: office
+    url: http://192.168.1.10/
+    category: management
+    icon: gear.svg
+    description: Storage device
+
+  # ---- Internal (admin-only) ----
+  - id: monitoring
+    name: Monitoring Dashboard
+    host: server1
+    location: home
+    url: http://192.168.1.20:3000
+    category: intern
+    icon: gear.svg
+    description: Metrics dashboard
+    healthcheck:
+      url: http://192.168.1.20:3000/api/health
+
+  - id: surveillance
+    name: Camera
+    host: server2
+    location: office
+    url: http://192.168.1.50/
+    category: intern
+    icon: camera.svg
+    description: Surveillance camera
+    healthcheck:
+      url: http://192.168.1.50/
+      insecure: true
+
+  # ---- AI / MCP (admin-only, last section) ----
+  - id: llm
+    name: Local LLM
+    host: server1
+    location: home
+    url: http://192.168.1.30:1234/
+    category: ai
+    icon: gear.svg
+    description: Local language model
