@@ -31,12 +31,12 @@ services:
   - id: github
     name: GitHub
     host: cloud
-    url: https://github.com
+    url: https://github.com/Finomosec/personal-portal-page
     category: general
     icon: github.svg
-    description: Code hosting
+    description: This project on GitHub
     healthcheck:
-      url: https://github.com
+      url: https://github.com/Finomosec/personal-portal-page
 
   - id: wikipedia
     name: Wikipedia
