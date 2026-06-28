@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { browser } from '$app/environment';
-	import type { Service, HealthResult, Category, HostInfo, LocationInfo } from '$lib/types';
+	import type { Service, HealthResult, CategoryDef, HostInfo, LocationInfo } from '$lib/types';
 
 	const ADMIN_MODE_KEY = 'personal-portal:adminMode';
 
@@ -8,6 +8,7 @@
 		data: {
 			title: string;
 			healthCheck: boolean;
+			categories: CategoryDef[];
 			hosts: Record<string, HostInfo>;
 			locations: Record<string, LocationInfo>;
 			services: Service[];
@@ -61,12 +62,9 @@
 	}
 
 	const filtered = $derived(data.services.filter(matches));
-	const byCategory = $derived({
-		general: filtered.filter((s: Service) => s.category === 'general'),
-		ai: filtered.filter((s: Service) => s.category === 'ai'),
-		management: filtered.filter((s: Service) => s.category === 'management'),
-		intern: filtered.filter((s: Service) => s.category === 'intern')
-	} as Record<Category, Service[]>);
+	const byCategory = $derived(
+		Object.fromEntries(data.categories.map((c) => [c.key, filtered.filter((s: Service) => s.category === c.key)])) as Record<string, Service[]>
+	);
 
 	async function runHealthCheck() {
 		checking = true;
@@ -176,14 +174,9 @@
 		{/if}
 	</div>
 
-	{#each [
-		{ key: 'general', label: 'Allgemein' },
-		{ key: 'management', label: 'Management' },
-		{ key: 'intern', label: 'Intern' },
-		{ key: 'ai', label: 'KI / MCP' }
-	] as section}
-		{@const list = byCategory[section.key as Category]}
-		{@const visible = adminMode || section.key === 'general'}
+	{#each data.categories as section}
+		{@const list = byCategory[section.key]}
+		{@const visible = adminMode || section.visible === 'always'}
 		{#if visible && list.length > 0}
 			<section>
 				{#if adminMode && section.label}
