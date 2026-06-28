@@ -1,4 +1,8 @@
-export type Category = 'general' | 'ai' | 'management' | 'intern';
+export interface CategoryDef {
+	key: string;
+	label: string;
+	visible: 'always' | 'admin';
+}
 
 export interface Service {
 	id: string;
@@ -6,7 +10,7 @@ export interface Service {
 	host: string;
 	location?: string;
 	url: string;
-	category: Category;
+	category: string;
 	description?: string;
 	icon?: string;
 	disabled?: boolean;
@@ -30,6 +34,7 @@ export interface HostInfo {
 export interface SystemsConfig {
 	title?: string;
 	healthCheck?: boolean;
+	categories?: CategoryDef[];
 	hosts: Record<string, HostInfo>;
 	locations: Record<string, LocationInfo>;
 	services: Service[];

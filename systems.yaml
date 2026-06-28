@@ -7,6 +7,20 @@ title: Service Portal
 #   (required) and optionally one location (used for the location badge
 #   on each card and the second filter row)
 
+categories:
+  - key: general
+    label: Allgemein
+    visible: always
+  - key: management
+    label: Management
+    visible: admin
+  - key: intern
+    label: Intern
+    visible: admin
+  - key: ai
+    label: KI / MCP
+    visible: admin
+
 hosts:
   server1:  { name: Server 1, shortName: Srv1 }
   server2:  { name: Server 2, shortName: Srv2 }
