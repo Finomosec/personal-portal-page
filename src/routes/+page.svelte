@@ -175,7 +175,7 @@
 	<div class="controls">
 		<input
 			type="search"
-			placeholder="Suche (Name, Beschreibung, URL, Host)…"
+			placeholder="Suche (Name, Beschreibung, etc.)"
 			bind:value={search}
 			class="search"
 		/>
