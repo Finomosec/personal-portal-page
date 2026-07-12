@@ -23,6 +23,7 @@
 	let health = $state<Record<string, HealthResult>>({});
 	let checking = $state(false);
 	let lastCheck = $state<Date | null>(null);
+	let checkingIds = $state<Set<string>>(new Set()); // laufende Einzel-Checks
 
 	$effect(() => {
 		if (browser) localStorage.setItem(ADMIN_MODE_KEY, adminMode ? '1' : '0');
@@ -96,6 +97,37 @@
 			console.error('health check failed', err);
 		} finally {
 			checking = false;
+		}
+	}
+
+	async function checkOne(id: string) {
+		if (checkingIds.has(id)) return; // läuft schon → nicht erneut
+		const adding = new Set(checkingIds);
+		adding.add(id);
+		checkingIds = adding;
+		// Safety-Reset, falls der Request hängt (Server-Probe-Timeout ist 3s)
+		const safety = setTimeout(() => {
+			const s = new Set(checkingIds);
+			s.delete(id);
+			checkingIds = s;
+		}, 8000);
+		try {
+			const res = await fetch('/api/health', {
+				method: 'POST',
+				headers: { 'content-type': 'application/json' },
+				body: JSON.stringify({ ids: [id] })
+			});
+			if (!res.ok) throw new Error(`status ${res.status}`);
+			const results = await res.json();
+			health = { ...health, ...results };
+			lastCheck = new Date();
+		} catch (err) {
+			console.error('health check failed', err);
+		} finally {
+			clearTimeout(safety);
+			const s = new Set(checkingIds);
+			s.delete(id);
+			checkingIds = s;
 		}
 	}
 
@@ -214,7 +246,26 @@
 										<span class="loc" title={data.locations[svc.location].name}
 											>{data.locations[svc.location].shortName}</span>
 									{/if}
-									<span class="status-dot {statusClass(svc.id)}" title={statusTitle(svc.id)}></span>
+									<span
+										class="status-dot {statusClass(svc.id)}"
+										class:checking={checkingIds.has(svc.id)}
+										role="button"
+										tabindex="0"
+										aria-label="Health-Check auslösen"
+										title={checkingIds.has(svc.id) ? 'Prüfe…' : statusTitle(svc.id)}
+										onclick={(e) => {
+											e.preventDefault();
+											e.stopPropagation();
+											checkOne(svc.id);
+										}}
+										onkeydown={(e) => {
+											if (e.key === 'Enter' || e.key === ' ') {
+												e.preventDefault();
+												e.stopPropagation();
+												checkOne(svc.id);
+											}
+										}}
+									></span>
 								</span>
 							</div>
 							{#if svc.description}<p class="desc" lang="de">{svc.description}</p>{/if}
@@ -452,6 +503,8 @@
 		height: 9px;
 		border-radius: 50%;
 		flex-shrink: 0;
+		cursor: pointer;
+		transition: transform 0.12s ease;
 	}
 
 	.loc {
@@ -488,6 +541,40 @@
 	.status-dot.unknown {
 		background: var(--unknown);
 		opacity: 0.7;
+	}
+
+	.status-dot:hover {
+		transform: scale(1.35);
+	}
+
+	.status-dot:focus-visible {
+		outline: 2px solid var(--ok);
+		outline-offset: 2px;
+	}
+
+	/* läuft gerade: pulsieren + nicht erneut klickbar signalisieren */
+	.status-dot.checking {
+		cursor: progress;
+		animation: hc-pulse 0.9s ease-in-out infinite;
+	}
+
+	@keyframes hc-pulse {
+		0%,
+		100% {
+			transform: scale(1);
+			opacity: 1;
+		}
+		50% {
+			transform: scale(1.7);
+			opacity: 0.45;
+		}
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+		.status-dot.checking {
+			animation: none;
+			opacity: 0.5;
+		}
 	}
 
 	.name {
