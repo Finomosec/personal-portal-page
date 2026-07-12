@@ -2,6 +2,8 @@ export interface CategoryDef {
 	key: string;
 	label: string;
 	visible: 'always' | 'admin';
+	/** Kategorie liegt „im Internet" — Healthcheck nur, wenn aktiv dahin gefiltert wurde. */
+	external?: boolean;
 }
 
 export interface Service {
