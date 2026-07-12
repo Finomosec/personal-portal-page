@@ -190,14 +190,16 @@
 									<img class="icon" src="/icon/{svc.icon}" alt="" aria-hidden="true" />
 								{/if}
 								<span class="name" title={svc.name}>{svc.name}</span>
-								{#if svc.location && data.locations?.[svc.location]}
-									<span class="loc" title={data.locations[svc.location].name}
-										>{data.locations[svc.location].shortName}</span>
-								{/if}
-								<span class="status-dot {statusClass(svc.id)}" title={statusTitle(svc.id)}></span>
+								<span class="corner-top">
+									{#if svc.location && data.locations?.[svc.location]}
+										<span class="loc" title={data.locations[svc.location].name}
+											>{data.locations[svc.location].shortName}</span>
+									{/if}
+									<span class="status-dot {statusClass(svc.id)}" title={statusTitle(svc.id)}></span>
+								</span>
 							</div>
+							{#if svc.description}<p class="desc" lang="de">{svc.description}</p>{/if}
 							<div class="card-foot">
-								{#if svc.description}<p class="desc">{svc.description}</p>{/if}
 								<span class="host" title={data.hosts[svc.host]?.name ?? svc.host}
 									>{data.hosts[svc.host]?.shortName ?? svc.host}</span>
 							</div>
@@ -404,16 +406,26 @@
 	.card-head {
 		display: flex;
 		align-items: center;
-		gap: 0.5rem;
-		margin-bottom: 0.4rem;
+		gap: 0.4rem;
+		margin-bottom: 0.35rem;
 	}
 
-	/* Kopfzeile: Icon + Name (wächst, mit Ellipsis) + Location-Badge + Status-Dot rechts */
+	/* Location-Badge + Status-Dot als Gruppe, 4px in die obere rechte Ecke gerückt */
+	.corner-top {
+		flex: 0 0 auto;
+		display: flex;
+		align-items: center;
+		gap: 0.45rem;
+		position: relative;
+		top: -4px;
+		right: -4px;
+	}
+
+	/* Host-Badge unten rechts (gleich hohe Karten via Grid-Stretch → margin-top:auto) */
 	.card-foot {
 		display: flex;
-		align-items: flex-end;
-		gap: 0.6rem;
-		margin-top: auto; /* Fuß an den unteren Rand (gleich hohe Karten via Grid-Stretch) */
+		justify-content: flex-end;
+		margin-top: auto;
 	}
 
 	.status-dot {
@@ -470,8 +482,10 @@
 
 	.host {
 		flex: 0 0 auto;
-		margin-left: auto; /* Badge immer rechts, auch ohne Beschreibung */
 		white-space: nowrap;
+		position: relative;
+		bottom: -4px;
+		right: -4px; /* 4px in die untere rechte Ecke gerückt */
 		font-size: 0.7rem;
 		color: var(--text-dim);
 		background: rgba(0, 255, 65, 0.06);
@@ -483,12 +497,15 @@
 	}
 
 	.desc {
-		flex: 1 1 auto;
-		min-width: 0;
 		margin: 0;
 		font-size: 0.85rem;
 		color: var(--text-dim);
 		line-height: 1.35;
+		/* automatische Silbentrennung + Umbruch langer Wörter (lang="de" am Element) */
+		hyphens: auto;
+		-webkit-hyphens: auto;
+		overflow-wrap: break-word;
+		word-break: normal;
 	}
 
 	.url {
