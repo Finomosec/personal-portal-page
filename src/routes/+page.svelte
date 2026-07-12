@@ -184,7 +184,7 @@
 				{/if}
 				<div class="grid">
 					{#each list as svc (svc.id)}
-						<a class="card" href={svc.url} target="_blank" rel="noopener noreferrer">
+						<a class="card" href={svc.url} target={svc.download ? '_self' : '_blank'} rel="noopener noreferrer" download={svc.download ? '' : undefined}>
 							<div class="card-head">
 								{#if svc.icon}
 									<img class="icon" src="/icon/{svc.icon}" alt="" aria-hidden="true" />
