@@ -316,7 +316,8 @@
 								</span>
 							</div>
 							<div class="card-body">
-								{#if svc.description}<p class="desc" lang="de">{svc.description}</p>{/if}
+								<!-- desc-Container immer rendern (auch leer), sonst rutscht der Host-Badge nach links -->
+								<p class="desc" lang="de">{svc.description ?? ''}</p>
 								<span class="host" title={data.hosts[svc.host]?.name ?? svc.host}
 									>{data.hosts[svc.host]?.shortName ?? svc.host}</span>
 							</div>
