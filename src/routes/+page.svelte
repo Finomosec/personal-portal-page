@@ -139,7 +139,7 @@
 
 	function statusTitle(id: string): string {
 		const r = health[id];
-		if (!r) return 'noch nicht geprüft';
+		if (!r) return 'Erreichbarkeit prüfen';
 		if (r.status === 'ok') return `OK (HTTP ${r.code}, ${r.latencyMs} ms)`;
 		if (r.status === 'down')
 			return `Down${r.code ? ` (HTTP ${r.code})` : ''}${r.error ? ` — ${r.error}` : ''}`;
@@ -514,7 +514,16 @@
 		border-radius: 50%;
 		flex-shrink: 0;
 		cursor: pointer;
+		position: relative;
 		transition: transform 0.12s ease;
+	}
+
+	/* vergrößert die Klickfläche, ohne die optische Position/Größe zu verändern */
+	.status-dot::before {
+		content: '';
+		position: absolute;
+		inset: -7px;
+		border-radius: 50%;
 	}
 
 	.loc {
@@ -562,9 +571,13 @@
 		outline-offset: 2px;
 	}
 
-	/* läuft gerade: pulsieren + nicht erneut klickbar signalisieren */
+	/* läuft gerade: türkis + pulsieren + nicht erneut klickbar signalisieren */
 	.status-dot.checking {
 		cursor: progress;
+		background: #2dd4bf;
+		box-shadow:
+			0 0 6px rgba(45, 212, 191, 0.75),
+			0 0 0 3px rgba(45, 212, 191, 0.15);
 		animation: hc-pulse 0.9s ease-in-out infinite;
 	}
 
