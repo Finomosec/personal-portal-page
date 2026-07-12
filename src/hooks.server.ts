@@ -8,7 +8,7 @@ const PUBLIC_PATHS = new Set(['/login', '/favicon.svg', '/favicon.png']);
 // SvelteKit-Build-Assets (/_app/), das Icons-Verzeichnis und alles mit
 // einer typischen Asset-Endung. App-/API-Routen sind extensionslos und
 // bleiben daher weiterhin hinter dem Login-Gate.
-const PUBLIC_PREFIXES = ['/_app/', '/icons/'];
+const PUBLIC_PREFIXES = ['/_app/', '/icons/', '/icon/'];
 const ASSET_EXT = /\.(svg|png|jpe?g|webp|gif|ico|css|js|mjs|map|woff2?|ttf|otf|eot)$/i;
 
 function isPublic(pathname: string): boolean {

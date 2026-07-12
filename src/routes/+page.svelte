@@ -199,7 +199,7 @@
 							</div>
 							<div class="card-head">
 								{#if svc.icon}
-									<img class="icon" src="/icons/{svc.icon}" alt="" aria-hidden="true" />
+									<img class="icon" src="/icon/{svc.icon}" alt="" aria-hidden="true" />
 								{/if}
 								<span class="name">{svc.name}</span>
 							</div>
