@@ -624,6 +624,8 @@
 		/* automatische Silbentrennung + Umbruch langer Wörter (lang="de" am Element) */
 		hyphens: auto;
 		-webkit-hyphens: auto;
+		/* nur längere Wörter trennen: min. 12 Zeichen Wortlänge, min. 5 vor / 4 nach dem Trennstrich */
+		hyphenate-limit-chars: 12 5 4;
 		overflow-wrap: break-word;
 		word-break: normal;
 	}
