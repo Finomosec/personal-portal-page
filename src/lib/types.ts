@@ -14,6 +14,7 @@ export interface Service {
 	description?: string;
 	icon?: string;
 	disabled?: boolean;
+	download?: boolean;
 	healthcheck?: {
 		url: string;
 		insecure?: boolean;
