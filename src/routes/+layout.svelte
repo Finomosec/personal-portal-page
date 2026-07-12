@@ -7,6 +7,9 @@
 
 <style>
 	:global(:root) {
+		/* Scrollbar-Platz immer reservieren → V-Scrollbar togglet nicht mehr die
+		   Layout-Breite (verhindert das „Springen"/Jitter bei knapper Seitenhöhe) */
+		scrollbar-gutter: stable;
 		--bg: #000000;
 		--bg-elev: #03070a;
 		--bg-card: #050b0a;

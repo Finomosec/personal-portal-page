@@ -530,6 +530,10 @@
 		border-radius: var(--radius);
 		color: var(--text);
 		text-decoration: none;
+		/* fängt die über den Rand ragende Status-Dot-Klickfläche (::before inset:-7px) ab,
+		   damit sie keinen horizontalen Seiten-Overflow/Scrollbar-Jitter erzeugt.
+		   Der eigene Hover-Glow (box-shadow) bleibt davon unberührt. */
+		overflow: clip;
 		transition: background 0.12s ease, border-color 0.12s ease, transform 0.12s ease;
 	}
 
