@@ -69,9 +69,28 @@
 	async function runHealthCheck() {
 		checking = true;
 		try {
-			const res = await fetch('/api/health', { method: 'POST' });
+			// nur aktuell sichtbare Services prüfen (Filter + Kategorie-Sichtbarkeit)
+			const visible = filtered.filter((s: Service) => {
+				const cat = data.categories.find((c: CategoryDef) => c.key === s.category);
+				return adminMode || cat?.visible === 'always';
+			});
+			// im ungefilterten Default externe Kategorien auslassen;
+			// nur prüfen, wenn aktiv dahin gefiltert wurde und sie noch sichtbar sind
+			const filterActive = !!(search.trim() || activeHost || activeLocation || activeStatus);
+			const targets = filterActive
+				? visible
+				: visible.filter(
+						(s: Service) => !data.categories.find((c: CategoryDef) => c.key === s.category)?.external
+					);
+
+			const res = await fetch('/api/health', {
+				method: 'POST',
+				headers: { 'content-type': 'application/json' },
+				body: JSON.stringify({ ids: targets.map((s: Service) => s.id) })
+			});
 			if (!res.ok) throw new Error(`status ${res.status}`);
-			health = await res.json();
+			const results = await res.json();
+			health = { ...health, ...results }; // mergen, bereits geprüfte Status behalten
 			lastCheck = new Date();
 		} catch (err) {
 			console.error('health check failed', err);
