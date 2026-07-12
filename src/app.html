@@ -6,6 +6,13 @@
 		<meta name="viewport" content="width=device-width, initial-scale=1" />
 		<meta name="color-scheme" content="dark light" />
 		<title>Portal</title>
+		<script>
+			// Theme früh setzen (vor Render) → kein Flash beim Laden im Light-Theme
+			try {
+				var t = localStorage.getItem('personal-portal:theme');
+				if (t === 'light') document.documentElement.dataset.theme = 'light';
+			} catch (e) {}
+		</script>
 		%sveltekit.head%
 	</head>
 	<body data-sveltekit-preload-data="hover">
