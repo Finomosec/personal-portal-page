@@ -210,11 +210,11 @@
 			</button>
 			{#if data.healthCheck}
 				<button onclick={runHealthCheck} disabled={checking}>
-					{checking ? 'Prüfe…' : 'Health-Check'}
+					{checking ? 'Prüfe…' : 'Prüfen'}
 				</button>
 			{/if}
 			<form method="POST" action="/logout">
-				<button type="submit">Logout</button>
+				<button type="submit">Ausloggen</button>
 			</form>
 		</div>
 	</header>
