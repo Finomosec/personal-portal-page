@@ -595,7 +595,7 @@
 		color: var(--text-dim);
 		background: rgba(0, 255, 65, 0.06);
 		border: 1px solid var(--border-strong);
-		padding: 0.15rem 0.4rem;
+		padding: calc(0.15rem + 0.5px) 0.4rem; /* 1px höher als zuvor */
 		border-radius: 999px;
 		text-transform: uppercase;
 		letter-spacing: 0.05em;
