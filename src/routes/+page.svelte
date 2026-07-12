@@ -185,31 +185,22 @@
 				<div class="grid">
 					{#each list as svc (svc.id)}
 						<a class="card" href={svc.url} target="_blank" rel="noopener noreferrer">
-							<div class="card-top">
-								{#if svc.location && data.locations?.[svc.location]}
-									<span
-										class="loc"
-										title={data.locations[svc.location].name}
-									>{data.locations[svc.location].shortName}</span>
-								{/if}
-								<span
-									class="status-dot {statusClass(svc.id)}"
-									title={statusTitle(svc.id)}
-								></span>
-							</div>
 							<div class="card-head">
 								{#if svc.icon}
 									<img class="icon" src="/icon/{svc.icon}" alt="" aria-hidden="true" />
 								{/if}
-								<span class="name">{svc.name}</span>
+								<span class="name" title={svc.name}>{svc.name}</span>
+								{#if svc.location && data.locations?.[svc.location]}
+									<span class="loc" title={data.locations[svc.location].name}
+										>{data.locations[svc.location].shortName}</span>
+								{/if}
+								<span class="status-dot {statusClass(svc.id)}" title={statusTitle(svc.id)}></span>
 							</div>
-							{#if svc.description}
-								<p class="desc">{svc.description}</p>
-							{/if}
-							<span
-								class="host"
-								title={data.hosts[svc.host]?.name ?? svc.host}
-							>{data.hosts[svc.host]?.shortName ?? svc.host}</span>
+							<div class="card-foot">
+								{#if svc.description}<p class="desc">{svc.description}</p>{/if}
+								<span class="host" title={data.hosts[svc.host]?.name ?? svc.host}
+									>{data.hosts[svc.host]?.shortName ?? svc.host}</span>
+							</div>
 						</a>
 					{/each}
 				</div>
@@ -393,7 +384,8 @@
 
 	.card {
 		position: relative;
-		display: block;
+		display: flex;
+		flex-direction: column;
 		padding: 0.9rem 1rem;
 		background: var(--bg-card);
 		border: 1px solid var(--border);
@@ -416,13 +408,12 @@
 		margin-bottom: 0.4rem;
 	}
 
-	.card-top {
-		position: absolute;
-		top: 0.6rem;
-		right: 0.7rem;
+	/* Kopfzeile: Icon + Name (wächst, mit Ellipsis) + Location-Badge + Status-Dot rechts */
+	.card-foot {
 		display: flex;
-		align-items: center;
-		gap: 0.45rem;
+		align-items: flex-end;
+		gap: 0.6rem;
+		margin-top: auto; /* Fuß an den unteren Rand (gleich hohe Karten via Grid-Stretch) */
 	}
 
 	.status-dot {
@@ -433,6 +424,7 @@
 	}
 
 	.loc {
+		flex: 0 0 auto;
 		font-size: 0.65rem;
 		line-height: 1;
 		color: var(--text-dim);
@@ -469,12 +461,17 @@
 
 	.name {
 		font-weight: 600;
+		flex: 1 1 auto;
+		min-width: 0;
+		white-space: nowrap;
+		overflow: hidden;
+		text-overflow: ellipsis;
 	}
 
 	.host {
-		position: absolute;
-		bottom: 0.7rem;
-		right: 0.7rem;
+		flex: 0 0 auto;
+		margin-left: auto; /* Badge immer rechts, auch ohne Beschreibung */
+		white-space: nowrap;
 		font-size: 0.7rem;
 		color: var(--text-dim);
 		background: rgba(0, 255, 65, 0.06);
@@ -486,6 +483,8 @@
 	}
 
 	.desc {
+		flex: 1 1 auto;
+		min-width: 0;
 		margin: 0;
 		font-size: 0.85rem;
 		color: var(--text-dim);
