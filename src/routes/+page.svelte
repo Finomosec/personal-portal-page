@@ -231,7 +231,7 @@
 		{#if visible && list.length > 0}
 			<section>
 				{#if adminMode && section.label}
-					<h2>{section.label}</h2>
+					<h2>{section.label} <span class="count">({list.length})</span></h2>
 				{/if}
 				<div class="grid">
 					{#each list as svc (svc.id)}
@@ -268,8 +268,8 @@
 									></span>
 								</span>
 							</div>
-							{#if svc.description}<p class="desc" lang="de">{svc.description}</p>{/if}
-							<div class="card-foot">
+							<div class="card-body">
+								{#if svc.description}<p class="desc" lang="de">{svc.description}</p>{/if}
 								<span class="host" title={data.hosts[svc.host]?.name ?? svc.host}
 									>{data.hosts[svc.host]?.shortName ?? svc.host}</span>
 							</div>
@@ -448,6 +448,14 @@
 		color: var(--accent-2);
 	}
 
+	/* Anzahl der Dienste je Sektion — dezent, ohne die Titel-Auszeichnung */
+	section h2 .count {
+		color: var(--text-dim);
+		font-weight: 400;
+		opacity: 0.6;
+		letter-spacing: normal;
+	}
+
 	.grid {
 		display: grid;
 		grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
@@ -491,11 +499,13 @@
 		right: -4px;
 	}
 
-	/* Host-Badge unten rechts (gleich hohe Karten via Grid-Stretch → margin-top:auto) */
-	.card-foot {
+	/* Beschreibung + Host-Badge nebeneinander: desc oben-links, Host-Badge unten-rechts.
+	   card-body füllt die Rest-Höhe (gleich hohe Karten via Grid-Stretch). */
+	.card-body {
 		display: flex;
-		justify-content: flex-end;
-		margin-top: auto;
+		gap: 0.5rem;
+		flex: 1 1 auto;
+		min-height: 0;
 	}
 
 	.status-dot {
@@ -588,10 +598,11 @@
 
 	.host {
 		flex: 0 0 auto;
+		align-self: flex-end; /* neben der desc, aber nach unten orientiert */
 		white-space: nowrap;
 		position: relative;
-		bottom: -4px;
-		right: -4px; /* 4px in die untere rechte Ecke gerückt */
+		bottom: -7px;
+		right: -7px; /* deutlich in die untere rechte Ecke gerückt */
 		font-size: 0.7rem;
 		color: var(--text-dim);
 		background: rgba(0, 255, 65, 0.06);
@@ -604,6 +615,9 @@
 
 	.desc {
 		margin: 0;
+		align-self: flex-start; /* oben, direkt unter dem Titel */
+		flex: 1 1 auto;
+		min-width: 0;
 		font-size: 0.85rem;
 		color: var(--text-dim);
 		line-height: 1.35;
