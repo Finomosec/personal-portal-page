@@ -421,6 +421,16 @@
 		height: 8px;
 	}
 
+	/* Die Filter-Chips brauchen KEINE vergrößerte ::before-Klickfläche — der ganze Button
+	   ist klickbar. Da .status-dot hier position:static ist (anders als in der Karte, wo es
+	   relative ist), würde das absolute ::before (inset:-7px) sonst relativ zum Viewport
+	   aufspannen: Viewport+7px → horizontaler Seiten-Overflow (H-Scrollbar/Jitter) UND ein
+	   seitenweites transparentes Overlay, das Hover global abfängt (Hover irgendwo lässt die
+	   Status-Dots aufleuchten). Deshalb hier explizit abschalten. */
+	.status-chip .status-dot::before {
+		content: none;
+	}
+
 	.switch {
 		display: inline-flex;
 		align-items: center;
