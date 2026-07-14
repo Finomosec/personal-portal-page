@@ -1,0 +1,17 @@
+name: deploy-soft
+# Soft-Deploy: nur Code holen + Assets syncen. KEIN rebuild, KEIN restart.
+# Fuer Aenderungen die live uebernommen werden: systems.yaml (dynamisch, mtime-Cache)
+# und ERSETZTE Icons (gleicher Dateiname). Fuer Code/neue Icons -> deploy-full.
+on:
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: nexus-host
+    steps:
+      - name: pull(nexus) + sync-assets
+        run: |
+          set -e
+          cd ~/Projects/personal-portal-page
+          git pull gitea nexus
+          node scripts/sync-assets.mjs

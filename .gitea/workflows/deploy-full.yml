@@ -1,0 +1,19 @@
+name: deploy-full
+# Volles Deploy: Code holen, bauen, Assets syncen, Service neu starten.
+# Fuer Code-Aenderungen (Svelte etc.) und NEUE Icons (neuer Dateiname).
+on:
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: nexus-host
+    steps:
+      - name: pull(nexus) + build + sync-assets + restart
+        run: |
+          set -e
+          cd ~/Projects/personal-portal-page
+          git pull gitea nexus        # deployter Branch ist 'nexus' (persoenliche Config)
+          git diff --quiet HEAD@{1} HEAD -- package-lock.json || npm ci
+          npm run build
+          node scripts/sync-assets.mjs
+          systemctl --user restart nexus-portal
