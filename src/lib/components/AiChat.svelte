@@ -159,6 +159,7 @@
 
 <section class="ai" class:expanded>
 	{#if expanded}
+		<button class="close" onclick={reset} title="Neuer Chat" aria-label="Chat schließen">×</button>
 		<div class="log" bind:this={logEl} onscroll={onScroll}>
 			{#each messages as m, i}
 				<div class="msg {m.role}">
@@ -218,19 +219,32 @@
 		<button class="go" onclick={send} disabled={!input.trim()} title="Senden">
 			{streaming ? '…' : '>'}
 		</button>
-		{#if expanded}
-			<button class="new" onclick={reset} title="Neuer Chat">Neuer Chat</button>
-		{/if}
 	</div>
 </section>
 
 <style>
 	.ai {
+		position: relative;
 		margin: 0 0 1.4rem;
 		padding: 0.6rem;
 		background: var(--bg-card);
 		border: 1px solid var(--border);
 		border-radius: var(--radius);
+	}
+	/* bleibt über dem mitlaufenden Log stehen wie ein Fenster-Schließer */
+	.close {
+		position: absolute;
+		top: 0.4rem;
+		right: 0.4rem;
+		z-index: 2;
+		padding: 0 0.4rem;
+		font-size: 1.15rem;
+		line-height: 1.5;
+		color: var(--text-dim);
+		border-color: var(--border);
+	}
+	.close:hover {
+		color: var(--accent);
 	}
 	.ai.expanded {
 		border-color: var(--border-strong);
@@ -241,7 +255,7 @@
 		max-height: 70vh;
 		max-height: calc(100dvh - 12rem);
 		overflow-y: auto;
-		padding: 0.2rem 0.2rem 0.6rem;
+		padding: 0.2rem 2.2rem 0.6rem 0.2rem;
 		display: flex;
 		flex-direction: column;
 		gap: 0.55rem;
@@ -282,6 +296,10 @@
 		color: var(--down);
 	}
 	.cursor {
+		display: inline-block;
+		font-size: 1.35rem;
+		line-height: 1.2;
+		letter-spacing: 0.04em;
 		color: var(--text-dim);
 		animation: pulse 1.1s ease-in-out infinite;
 	}
@@ -356,8 +374,5 @@
 		flex: 0 0 auto;
 		min-width: 2.6rem;
 		font-weight: 700;
-	}
-	.new {
-		flex: 0 0 auto;
 	}
 </style>
