@@ -168,7 +168,7 @@
 						{#if m.content}
 							<span class="text">{m.content}</span>
 						{:else if streaming}
-							<span class="cursor">denkt…</span>
+							<span class="cursor">Denkt…</span>
 						{/if}
 						{#if opened[i]}
 							<a
@@ -297,9 +297,9 @@
 	}
 	.cursor {
 		display: inline-block;
-		font-size: 1.35rem;
-		line-height: 1.2;
-		letter-spacing: 0.04em;
+		font-size: 1.02rem;
+		line-height: 1.35;
+		letter-spacing: 0.03em;
 		color: var(--text-dim);
 		animation: pulse 1.1s ease-in-out infinite;
 	}
