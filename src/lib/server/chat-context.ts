@@ -14,7 +14,7 @@ export function aiConfig(): AiConfig {
 	return {
 		enabled: ai?.enabled ?? false,
 		excludeCategories: ai?.excludeCategories ?? [],
-		maxTokens: ai?.maxTokens ?? 512,
+		maxTokens: ai?.maxTokens,
 		defaultBackend: ai?.defaultBackend ?? backends[0].id,
 		backends
 	};

@@ -63,6 +63,8 @@ export const POST: RequestHandler = async ({ request }) => {
 	try {
 		upstream = await fetch(`${backend.url.replace(/\/$/, '')}/chat/completions`, {
 			method: 'POST',
+			// Bricht der Browser ab, soll auch das Modell aufhören zu rechnen.
+			signal: request.signal,
 			headers: { 'content-type': 'application/json', authorization: 'Bearer local' },
 			body: JSON.stringify({
 				model: backend.model,
@@ -70,7 +72,7 @@ export const POST: RequestHandler = async ({ request }) => {
 				stream: true,
 				response_format: RESPONSE_FORMAT,
 				temperature: 0.3,
-				max_tokens: cfg.maxTokens
+				...(cfg.maxTokens ? { max_tokens: cfg.maxTokens } : {})
 			})
 		});
 	} catch (e) {
@@ -131,10 +133,15 @@ export const POST: RequestHandler = async ({ request }) => {
 				const service = openService ? aiServices().find((s) => s.id === openService) : undefined;
 				send({ type: 'done', text: sent, service: service ?? null });
 			} catch (e) {
-				send({ type: 'error', message: (e as Error).message });
+				if ((e as Error).name !== 'AbortError') {
+					send({ type: 'error', message: (e as Error).message });
+				}
 			} finally {
 				controller.close();
 			}
+		},
+		cancel() {
+			upstream.body?.cancel();
 		}
 	});
 
