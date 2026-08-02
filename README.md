@@ -15,6 +15,7 @@ A small self-hosted landing page for the services running on your home/office ne
 - **Theme-adaptive favicon** that follows the browser's `prefers-color-scheme`
 - **Hot-reload of `systems.yaml`** — mtime-cached, no rebuild needed
 - **Optional health-check toggle** — set `healthCheck: false` in `systems.yaml` to hide the button entirely
+- **Optional AI chat** (off by default) — ask in plain language and get a service opened for you; works with any OpenAI-compatible endpoint (Ollama, LM Studio, …), switchable at runtime
 
 ## Tech stack
 
@@ -74,6 +75,44 @@ Drop SVG/PNG/WebP files into `static/icons/` and reference them by filename. Two
 ### Auth gate
 
 The `hooks.server.ts` redirects every unauthenticated request to `/login`. The `PUBLIC_PATHS` set lists the few paths that bypass the gate (favicon, login). The session cookie is signed with HMAC-SHA256 against `PORTAL_SECRET`.
+
+### AI chat (optional, off by default)
+
+Adds a prompt above the first category. It answers general questions and can open a
+service for you. Enable it with an `ai:` block in `systems.yaml`:
+
+```yaml
+ai:
+  enabled: true
+  excludeCategories: [intern]   # categories the model must not see
+  maxTokens: 512
+  defaultBackend: local
+  backends:
+    - id: local
+      label: Local
+      url: http://127.0.0.1:11434/v1      # Ollama
+      model: qwen3:4b-instruct            # required for Ollama
+    - id: workstation
+      label: Workstation
+      url: http://192.168.1.20:1234/v1    # LM Studio
+      # no model: LM Studio uses whatever is currently loaded
+```
+
+Any OpenAI-compatible endpoint works — the server talks `/chat/completions` with
+`response_format: json_schema` and streams the reply to the browser. With more than
+one backend a selector appears next to the input.
+
+Two things worth knowing:
+
+- The **model never sees URLs.** It returns a service `id`, which the server validates
+  against `systems.yaml` before the browser opens the link — a hallucinated id opens
+  nothing. Services in `excludeCategories` are invisible to the model and cannot be opened.
+- The service list is injected into the system prompt and sits at its start, so
+  llama.cpp's prompt cache keeps it warm. On CPU-only inference, budget for a slow
+  first request and set a generous `OLLAMA_KEEP_ALIVE` — otherwise every request after
+  an idle period pays the full prompt-processing cost again.
+
+The chat sits behind the same auth gate as the rest of the portal.
 
 ## Deployment
 
