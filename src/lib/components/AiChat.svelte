@@ -222,16 +222,18 @@
 
 	<div class="row">
 		{#if ai.backends.length > 1}
-			<select class="backend" bind:value={backend} title="KI-Backend">
-				{#each ai.backends as b}
-					<option value={b.id}>{b.label}</option>
-				{/each}
-			</select>
+			<div class="backend-wrap">
+				<select class="backend" bind:value={backend} title="KI-Backend">
+					{#each ai.backends as b}
+						<option value={b.id}>{b.label}</option>
+					{/each}
+				</select>
+			</div>
 		{/if}
 		<input
 			class="prompt"
 			type="text"
-			placeholder={expanded ? 'Weiterfragen…' : 'Frag die KI — z.B. „wo sehe ich die Metriken?“'}
+			placeholder={expanded ? 'Weiterfragen…' : 'Frag die KI…'}
 			bind:value={input}
 			onkeydown={onKey}
 			bind:this={inputEl}
@@ -348,17 +350,34 @@
 		display: flex;
 		gap: 0.4rem;
 	}
+	/* Wrapper trägt den eigenen Pfeil — der native sitzt zu dicht am Rand */
+	.backend-wrap {
+		position: relative;
+		flex: 0 0 auto;
+		display: inline-flex;
+	}
+	.backend-wrap::after {
+		content: '';
+		position: absolute;
+		right: 0.75rem;
+		top: 50%;
+		width: 0.4rem;
+		height: 0.4rem;
+		border-right: 1.5px solid var(--accent);
+		border-bottom: 1.5px solid var(--accent);
+		transform: translateY(-70%) rotate(45deg);
+		pointer-events: none;
+	}
 	/* select erbt weder den globalen button- noch input-Stil */
 	.backend {
-		flex: 0 0 auto;
+		appearance: none;
+		width: 100%;
 		font: inherit;
 		color: var(--accent);
 		background: var(--bg-card);
 		border: 1px solid var(--border-strong);
 		border-radius: var(--radius);
-		padding: 0.5rem 0.6rem;
-		text-transform: uppercase;
-		letter-spacing: 0.06em;
+		padding: 0.5rem 1.9rem 0.5rem 0.6rem;
 		cursor: pointer;
 		transition:
 			background 0.12s ease,
@@ -382,8 +401,6 @@
 	.backend option {
 		background: var(--bg-elev);
 		color: var(--text);
-		text-transform: none;
-		letter-spacing: normal;
 	}
 	.prompt {
 		flex: 1 1 auto;
