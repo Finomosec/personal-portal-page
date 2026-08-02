@@ -109,6 +109,8 @@
 						if (evt.service) {
 							const svc = services.find((s) => s.id === evt.service.id) ?? evt.service;
 							opened[target] = svc;
+							// Kleine Modelle liefern bei „öffne X“ oft nur die Aktion ohne Text.
+							if (!messages[target].content) messages[target].content = `Öffne ${svc.name}.`;
 							// Ohne frische Nutzergeste greift der Popup-Blocker (die Antwort
 							// kommt Sekunden nach dem Klick) -> null, dann bleibt der Link.
 							blocked[target] = window.open(svc.url, '_blank', 'noopener') === null;
@@ -117,7 +119,9 @@
 					}
 				}
 			}
-			if (!messages[target].content && !errorMsg) errorMsg = 'Keine Antwort erhalten.';
+			if (!messages[target].content && !opened[target] && !errorMsg) {
+				errorMsg = 'Keine Antwort erhalten.';
+			}
 		} catch (e) {
 			errorMsg = (e as Error).message;
 		}
