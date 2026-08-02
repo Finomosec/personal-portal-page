@@ -63,9 +63,6 @@ export const GET: RequestHandler = async ({ params, request }) => {
 		entry = { mtimeMs: st.mtimeMs, size: st.size, buf: await readFile(path) };
 		cache.set(name, entry);
 	}
-	// Node-Buffer gilt den DOM-Typen nicht als BodyInit, ein Uint8Array-View
-	// darauf schon — und der kopiert die gecachten Bytes nicht. Der Cast, weil
-	// BufferSource ArrayBuffer verlangt; readFile liefert nie SharedArrayBuffer.
 	const body = new Uint8Array(
 		entry.buf.buffer as ArrayBuffer,
 		entry.buf.byteOffset,
