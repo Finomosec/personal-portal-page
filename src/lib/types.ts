@@ -39,8 +39,7 @@ export interface AiBackend {
 	id: string;
 	label: string;
 	url: string;
-	/** Ollama verlangt ein Modell; LM Studio nimmt ohne Angabe das geladene. */
-	model?: string;
+	model: string;
 }
 
 export interface AiConfig {
