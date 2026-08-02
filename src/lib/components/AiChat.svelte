@@ -15,10 +15,13 @@
 	let backend = $state(initialBackend());
 	let input = $state('');
 	let messages = $state<ChatMessage[]>([]);
+	let pending = $state<string[]>([]);
 	let streaming = $state(false);
 	let errorMsg = $state('');
 	let opened = $state<Record<number, Service>>({});
+	let blocked = $state<Record<number, boolean>>({});
 	let logEl = $state<HTMLDivElement | null>(null);
+	let inputEl = $state<HTMLInputElement | null>(null);
 
 	const expanded = $derived(messages.length > 0);
 
@@ -29,22 +32,48 @@
 	function reset() {
 		messages = [];
 		opened = {};
+		blocked = {};
+		pending = [];
 		errorMsg = '';
 		input = '';
+		inputEl?.focus();
 	}
 
 	function scrollDown() {
 		if (logEl) logEl.scrollTop = logEl.scrollHeight;
 	}
 
-	async function send() {
+	/**
+	 * Eingaben während einer laufenden Antwort landen in der Queue statt das
+	 * Feld zu sperren — bei zweistelligen Antwortzeiten soll man weitertippen
+	 * können. Wartende Zeilen gehen zusammengefasst als eine Frage raus.
+	 */
+	function send() {
 		const text = input.trim();
-		if (!text || streaming) return;
+		if (!text) return;
 		input = '';
+		pending = [...pending, text];
+		if (!streaming) drain();
+	}
+
+	async function drain() {
+		streaming = true;
 		errorMsg = '';
+		try {
+			while (pending.length) {
+				const merged = pending.join('\n');
+				pending = [];
+				await ask(merged);
+			}
+		} finally {
+			streaming = false;
+			inputEl?.focus();
+		}
+	}
+
+	async function ask(text: string) {
 		messages = [...messages, { role: 'user', content: text }, { role: 'assistant', content: '' }];
 		const target = messages.length - 1;
-		streaming = true;
 
 		try {
 			const res = await fetch('/api/chat', {
@@ -80,7 +109,9 @@
 						if (evt.service) {
 							const svc = services.find((s) => s.id === evt.service.id) ?? evt.service;
 							opened[target] = svc;
-							window.open(svc.url, '_blank', 'noopener');
+							// Ohne frische Nutzergeste greift der Popup-Blocker (die Antwort
+							// kommt Sekunden nach dem Klick) -> null, dann bleibt der Link.
+							blocked[target] = window.open(svc.url, '_blank', 'noopener') === null;
 						}
 						scrollDown();
 					}
@@ -89,8 +120,6 @@
 			if (!messages[target].content && !errorMsg) errorMsg = 'Keine Antwort erhalten.';
 		} catch (e) {
 			errorMsg = (e as Error).message;
-		} finally {
-			streaming = false;
 		}
 	}
 
@@ -115,11 +144,27 @@
 							<span class="cursor">denkt…</span>
 						{/if}
 						{#if opened[i]}
-							<a class="opened" href={opened[i].url} target="_blank" rel="noopener noreferrer">
-								↗ {opened[i].name} geöffnet
+							<a
+								class="opened"
+								class:blocked={blocked[i]}
+								href={opened[i].url}
+								target="_blank"
+								rel="noopener noreferrer"
+							>
+								{#if blocked[i]}
+									↗ {opened[i].name} öffnen — Popup wurde blockiert
+								{:else}
+									↗ {opened[i].name} geöffnet
+								{/if}
 							</a>
 						{/if}
 					</div>
+				</div>
+			{/each}
+			{#each pending as q}
+				<div class="msg user queued">
+					<span class="who">⋯</span>
+					<div class="body"><span class="text">{q}</span></div>
 				</div>
 			{/each}
 			{#if errorMsg}
@@ -130,7 +175,7 @@
 
 	<div class="row">
 		{#if ai.backends.length > 1}
-			<select class="backend" bind:value={backend} disabled={streaming} title="KI-Backend">
+			<select class="backend" bind:value={backend} title="KI-Backend">
 				{#each ai.backends as b}
 					<option value={b.id}>{b.label}</option>
 				{/each}
@@ -142,13 +187,13 @@
 			placeholder={expanded ? 'Weiterfragen…' : 'Frag die KI — z.B. „wo sehe ich die Metriken?“'}
 			bind:value={input}
 			onkeydown={onKey}
-			disabled={streaming}
+			bind:this={inputEl}
 		/>
-		<button class="go" onclick={send} disabled={streaming || !input.trim()} title="Senden">
+		<button class="go" onclick={send} disabled={!input.trim()} title="Senden">
 			{streaming ? '…' : '>'}
 		</button>
 		{#if expanded}
-			<button class="new" onclick={reset} disabled={streaming} title="Neuer Chat">Neuer Chat</button>
+			<button class="new" onclick={reset} title="Neuer Chat">Neuer Chat</button>
 		{/if}
 	</div>
 </section>
@@ -165,7 +210,10 @@
 		border-color: var(--border-strong);
 	}
 	.log {
-		max-height: 22rem;
+		/* wächst mit, bis der Viewport voll ist — der Rest bleibt für Eingabezeile
+		   und Seitenrand; dvh, damit mobile Browserleisten nicht abschneiden */
+		max-height: 70vh;
+		max-height: calc(100dvh - 12rem);
 		overflow-y: auto;
 		padding: 0.2rem 0.2rem 0.6rem;
 		display: flex;
@@ -199,6 +247,10 @@
 	.msg.user .text {
 		color: var(--text-dim);
 	}
+	.msg.queued {
+		opacity: 0.55;
+		font-style: italic;
+	}
 	.msg.err .body {
 		color: var(--down);
 	}
@@ -221,12 +273,53 @@
 	.opened:hover {
 		text-shadow: var(--accent-glow);
 	}
+	.opened.blocked {
+		display: inline-block;
+		margin-top: 0.35rem;
+		padding: 0.3rem 0.6rem;
+		border: 1px solid var(--accent);
+		border-radius: var(--radius);
+	}
 	.row {
 		display: flex;
 		gap: 0.4rem;
 	}
+	/* select erbt weder den globalen button- noch input-Stil */
 	.backend {
 		flex: 0 0 auto;
+		font: inherit;
+		color: var(--accent);
+		background: var(--bg-card);
+		border: 1px solid var(--border-strong);
+		border-radius: var(--radius);
+		padding: 0.5rem 0.6rem;
+		text-transform: uppercase;
+		letter-spacing: 0.06em;
+		cursor: pointer;
+		transition:
+			background 0.12s ease,
+			border-color 0.12s ease,
+			box-shadow 0.12s ease;
+	}
+	.backend:hover:not(:disabled) {
+		background: var(--bg-card-hover);
+		border-color: var(--accent);
+		box-shadow: var(--accent-glow);
+	}
+	.backend:focus-visible {
+		outline: none;
+		border-color: var(--accent);
+		box-shadow: var(--accent-glow);
+	}
+	.backend:disabled {
+		opacity: 0.5;
+		cursor: not-allowed;
+	}
+	.backend option {
+		background: var(--bg-elev);
+		color: var(--text);
+		text-transform: none;
+		letter-spacing: normal;
 	}
 	.prompt {
 		flex: 1 1 auto;
