@@ -77,6 +77,8 @@
 		);
 	}
 
+	/** Eine Suche soll auch in Kategorien treffen, die sonst nur im Admin-Modus sichtbar sind. */
+	const searching = $derived(!!search.trim());
 	const filtered = $derived(data.services.filter(matches));
 	const byCategory = $derived(
 		Object.fromEntries(data.categories.map((c) => [c.key, filtered.filter((s: Service) => s.category === c.key)])) as Record<string, Service[]>
@@ -88,7 +90,7 @@
 			// nur aktuell sichtbare Services prüfen (Filter + Kategorie-Sichtbarkeit)
 			const visible = filtered.filter((s: Service) => {
 				const cat = data.categories.find((c: CategoryDef) => c.key === s.category);
-				return adminMode || cat?.visible === 'always';
+				return adminMode || searching || cat?.visible === 'always';
 			});
 			// im ungefilterten Default externe Kategorien auslassen;
 			// nur prüfen, wenn aktiv dahin gefiltert wurde und sie noch sichtbar sind
@@ -287,10 +289,10 @@
 
 	{#each data.categories as section}
 		{@const list = byCategory[section.key]}
-		{@const visible = adminMode || section.visible === 'always'}
+		{@const visible = adminMode || searching || section.visible === 'always'}
 		{#if visible && list.length > 0}
 			<section>
-				{#if adminMode && section.label}
+				{#if (adminMode || searching) && section.label}
 					<h2>{section.label} <span class="count">({list.length})</span></h2>
 				{/if}
 				<div class="grid">
