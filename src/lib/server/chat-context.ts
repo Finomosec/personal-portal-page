@@ -52,8 +52,11 @@ function serviceList(): string {
  * Die Dienstliste steht bewusst am Anfang: llama.cpp cached den gemeinsamen
  * Prompt-Prefix, wodurch sie nach dem ersten Aufruf keine Rechenzeit mehr kostet.
  */
-export function systemPrompt(): string {
-	return `Du bist der Assistent dieses Portals. Diese Dienste gibt es:
+export function systemPrompt(backend: AiBackend): string {
+	return `Du bist der Assistent dieses Portals. Du läufst als Modell
+"${backend.model}" auf dem Rechner "${backend.label}".
+
+Diese Dienste gibt es:
 
 ${serviceList()}
 

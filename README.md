@@ -95,12 +95,14 @@ ai:
     - id: workstation
       label: Workstation
       url: http://192.168.1.20:1234/v1    # LM Studio
-      # no model: LM Studio uses whatever is currently loaded
+      model: some-org/some-model-name
 ```
 
 Any OpenAI-compatible endpoint works — the server talks `/chat/completions` with
 `response_format: json_schema` and streams the reply to the browser. With more than
-one backend a selector appears next to the input.
+one backend a selector appears next to the input. `model` is required per backend;
+label and model name are also stated in the system prompt, so the assistant can
+answer what it is running as and where.
 
 Two things worth knowing:
 

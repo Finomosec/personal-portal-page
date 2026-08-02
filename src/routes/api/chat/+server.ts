@@ -52,7 +52,7 @@ export const POST: RequestHandler = async ({ request }) => {
 
 	const backend = resolveBackend(body?.backend);
 	const messages = [
-		{ role: 'system', content: systemPrompt() },
+		{ role: 'system', content: systemPrompt(backend) },
 		...history.slice(-MAX_HISTORY).map((m) => ({
 			role: m.role === 'assistant' ? 'assistant' : 'user',
 			content: String(m.content ?? '').slice(0, 4000)
@@ -65,7 +65,7 @@ export const POST: RequestHandler = async ({ request }) => {
 			method: 'POST',
 			headers: { 'content-type': 'application/json', authorization: 'Bearer local' },
 			body: JSON.stringify({
-				...(backend.model ? { model: backend.model } : {}),
+				model: backend.model,
 				messages,
 				stream: true,
 				response_format: RESPONSE_FORMAT,
