@@ -83,12 +83,19 @@ export const POST: RequestHandler = async ({ request }) => {
 	}
 
 	const encoder = new TextEncoder();
+	// Bricht der Client ab, greift cancel() weiter unten auf beides zu.
+	let reader: ReadableStreamDefaultReader<Uint8Array> | undefined;
+	let cancelled = false;
+
 	const stream = new ReadableStream({
 		async start(controller) {
-			const send = (obj: unknown) =>
+			// Nach dem Abbruch ist der Controller zu — enqueue würde werfen.
+			const send = (obj: unknown) => {
+				if (cancelled) return;
 				controller.enqueue(encoder.encode(`data: ${JSON.stringify(obj)}\n\n`));
+			};
 
-			const reader = upstream.body!.getReader();
+			reader = upstream.body!.getReader();
 			const decoder = new TextDecoder();
 			let sse = '';
 			let raw = '';
@@ -137,11 +144,14 @@ export const POST: RequestHandler = async ({ request }) => {
 					send({ type: 'error', message: (e as Error).message });
 				}
 			} finally {
-				controller.close();
+				if (!cancelled) controller.close();
 			}
 		},
-		cancel() {
-			upstream.body?.cancel();
+		// getReader() hat den Body gelockt — ein cancel() darauf wirft
+		// ERR_INVALID_STATE, und die Rejection killt den Node-Prozess.
+		cancel(reason) {
+			cancelled = true;
+			return reader?.cancel(reason).catch(() => {});
 		}
 	});
 
