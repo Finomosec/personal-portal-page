@@ -81,7 +81,7 @@
 	const searching = $derived(!!search.trim());
 	const filtered = $derived(data.services.filter(matches));
 	const byCategory = $derived(
-		Object.fromEntries(data.categories.map((c) => [c.key, filtered.filter((s: Service) => s.category === c.key)])) as Record<string, Service[]>
+		Object.fromEntries(data.categories.map((c: CategoryDef) => [c.key, filtered.filter((s: Service) => s.category === c.key)])) as Record<string, Service[]>
 	);
 
 	async function runHealthCheck() {
