@@ -1,7 +1,15 @@
 <script lang="ts">
 	import { browser } from '$app/environment';
-	import type { Service, HealthResult, CategoryDef, HostInfo, LocationInfo } from '$lib/types';
+	import type {
+		Service,
+		HealthResult,
+		CategoryDef,
+		HostInfo,
+		LocationInfo,
+		AiClientConfig
+	} from '$lib/types';
 	import { getTheme, toggleTheme, type Theme } from '$lib/theme';
+	import AiChat from '$lib/components/AiChat.svelte';
 
 	const ADMIN_MODE_KEY = 'personal-portal:adminMode';
 
@@ -13,6 +21,7 @@
 			hosts: Record<string, HostInfo>;
 			locations: Record<string, LocationInfo>;
 			services: Service[];
+			ai: AiClientConfig;
 		};
 	}>();
 
@@ -271,6 +280,10 @@
 			{/if}
 		{/if}
 	</div>
+
+	{#if data.ai?.enabled}
+		<AiChat services={data.services} ai={data.ai} />
+	{/if}
 
 	{#each data.categories as section}
 		{@const list = byCategory[section.key]}

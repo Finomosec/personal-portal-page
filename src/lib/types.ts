@@ -34,6 +34,31 @@ export interface HostInfo {
 	hidden?: boolean;
 }
 
+/** OpenAI-kompatibler Endpoint — funktioniert für Ollama wie für LM Studio. */
+export interface AiBackend {
+	id: string;
+	label: string;
+	url: string;
+	/** Ollama verlangt ein Modell; LM Studio nimmt ohne Angabe das geladene. */
+	model?: string;
+}
+
+export interface AiConfig {
+	enabled: boolean;
+	/** Kategorien, die der KI nicht gezeigt werden. */
+	excludeCategories: string[];
+	maxTokens: number;
+	defaultBackend: string;
+	backends: AiBackend[];
+}
+
+/** Was der Client sehen darf — ohne URLs und Modellnamen preiszugeben. */
+export interface AiClientConfig {
+	enabled: boolean;
+	defaultBackend: string;
+	backends: { id: string; label: string }[];
+}
+
 export interface SystemsConfig {
 	title?: string;
 	healthCheck?: boolean;
@@ -41,6 +66,22 @@ export interface SystemsConfig {
 	hosts: Record<string, HostInfo>;
 	locations: Record<string, LocationInfo>;
 	services: Service[];
+	ai?: {
+		enabled?: boolean;
+		excludeCategories?: string[];
+		maxTokens?: number;
+		defaultBackend?: string;
+		backends?: AiBackend[];
+	};
+}
+
+export interface ChatMessage {
+	role: 'user' | 'assistant';
+	content: string;
+}
+
+export interface ChatAction {
+	service: Service;
 }
 
 export type HealthStatus = 'ok' | 'down' | 'unknown';
