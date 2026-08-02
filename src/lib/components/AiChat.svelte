@@ -241,8 +241,15 @@
 		{#if streaming}
 			<button class="stop" onclick={stop} title="Antwort abbrechen" aria-label="Abbrechen">■</button>
 		{/if}
-		<button class="go" onclick={send} disabled={!input.trim()} title="Senden">
-			{streaming ? '…' : '>'}
+		<!-- Bleibt auch während einer laufenden Antwort ein normaler Senden-Knopf:
+		     send() stellt in die Queue, statt das Feld zu sperren. -->
+		<button
+			class="go"
+			onclick={send}
+			disabled={!input.trim()}
+			title={streaming ? 'Senden (wird angehängt)' : 'Senden'}
+		>
+			&gt;
 		</button>
 	</div>
 </section>
