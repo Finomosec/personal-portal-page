@@ -11,16 +11,35 @@ import type { ChatMessage } from '$lib/types';
 
 const MAX_HISTORY = 12;
 
-/**
- * Das Modell kennt keine Adressen, erfindet sie aber trotzdem gern. Ein Prompt
- * allein reicht nicht: streng formuliert bringt er kleine Modelle dazu, gar
- * keine Dienste mehr zu öffnen. Deshalb hart serverseitig entfernen.
- */
-const URL_RE =
-	/\b(?:https?:\/\/|www\.)\S+|\b(?:\d{1,3}\.){3}\d{1,3}(?::\d+)?\b|\b[a-z0-9-]+\.(?:local|lan|internal)\b(?::\d+)?/gi;
+/** Adressen, die es außerhalb dieses Netzes nicht gibt — nie aus Modellwissen. */
+const INTERNAL_RE =
+	/\b(?:https?:\/\/)?(?:\d{1,3}\.){3}\d{1,3}(?::\d+)?\b|\b(?:https?:\/\/)?[a-z0-9-]+\.(?:local|lan|internal|home|intern)\b(?::\d+)?|\b(?:https?:\/\/)?localhost(?::\d+)?\b/gi;
 
-function stripUrls(text: string): string {
-	return text.replace(URL_RE, '…');
+const URL_RE = /\b(?:https?:\/\/|www\.)[^\s<>"')]+/gi;
+
+/**
+ * Das Modell kennt die Adressen der Dienste nicht, erfindet aber gern welche
+ * (etwa "https://<dienst>.<meine-domain>"). Gefiltert wird deshalb gezielt:
+ * interne Adressen immer, sonstige URLs nur, wenn ihr Host nach einem der
+ * konfigurierten Dienste benannt ist. Links zu allgemeinen Webseiten — wonach
+ * der Nutzer ja legitim fragen kann — bleiben unangetastet.
+ */
+function stripServiceUrls(text: string, tokens: string[]): string {
+	return text.replace(INTERNAL_RE, '…').replace(URL_RE, (url) => {
+		const host = url.replace(/^https?:\/\//i, '').split('/')[0].toLowerCase();
+		return tokens.some((t) => host.includes(t)) ? '…' : url;
+	});
+}
+
+/** Namensbestandteile der Dienste, an denen eine erfundene Adresse erkennbar ist. */
+function serviceTokens(): string[] {
+	const out = new Set<string>();
+	for (const s of aiServices()) {
+		for (const part of `${s.id} ${s.name}`.toLowerCase().split(/[^a-z0-9]+/)) {
+			if (part.length >= 4) out.add(part);
+		}
+	}
+	return [...out];
 }
 
 /** Angebrochene Wörter zurückhalten, sonst entkommt eine URL zeichenweise. */
@@ -107,6 +126,7 @@ export const POST: RequestHandler = async ({ request }) => {
 
 			const reader = upstream.body!.getReader();
 			const decoder = new TextDecoder();
+			const tokens = serviceTokens();
 			let sse = '';
 			let raw = '';
 			let sent = '';
@@ -131,7 +151,7 @@ export const POST: RequestHandler = async ({ request }) => {
 							continue;
 						}
 						raw += chunk.choices?.[0]?.delta?.content ?? '';
-						const answer = stripUrls(safePrefix(extractAnswer(raw), false));
+						const answer = stripServiceUrls(safePrefix(extractAnswer(raw), false), tokens);
 						if (answer.length > sent.length) {
 							send({ type: 'delta', text: answer.slice(sent.length) });
 							sent = answer;
@@ -139,7 +159,7 @@ export const POST: RequestHandler = async ({ request }) => {
 					}
 				}
 
-				sent = stripUrls(extractAnswer(raw));
+				sent = stripServiceUrls(extractAnswer(raw), tokens);
 
 				let openService = '';
 				try {
