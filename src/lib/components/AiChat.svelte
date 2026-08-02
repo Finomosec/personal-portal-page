@@ -231,6 +231,7 @@
 	}
 	.msg {
 		display: flex;
+		align-items: center;
 		gap: 0.55rem;
 		font-size: 0.92rem;
 		line-height: 1.45;
