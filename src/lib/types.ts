@@ -46,7 +46,7 @@ export interface AiConfig {
 	enabled: boolean;
 	/** Kategorien, die der KI nicht gezeigt werden. */
 	excludeCategories: string[];
-	maxTokens: number;
+	maxTokens?: number;
 	defaultBackend: string;
 	backends: AiBackend[];
 }

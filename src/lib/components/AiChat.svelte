@@ -24,11 +24,16 @@
 	let logEl = $state<HTMLDivElement | null>(null);
 	let inputEl = $state<HTMLInputElement | null>(null);
 	let stick = $state(true);
+	let abort: AbortController | null = null;
 
 	const expanded = $derived(messages.length > 0);
 
 	$effect(() => {
 		if (browser) localStorage.setItem(BACKEND_KEY, backend);
+	});
+
+	$effect(() => {
+		if (errorMsg) scrollDown();
 	});
 
 	function reset() {
@@ -72,6 +77,11 @@
 		if (!streaming) drain();
 	}
 
+	/** Bricht die laufende Antwort ab; Wartendes rückt sofort nach. */
+	function stop() {
+		abort?.abort();
+	}
+
 	async function drain() {
 		streaming = true;
 		errorMsg = '';
@@ -79,23 +89,28 @@
 			while (pending.length) {
 				const merged = pending.join('\n');
 				pending = [];
-				await ask(merged);
+				const done = await ask(merged);
+				if (!done && !pending.length) break;
 			}
 		} finally {
 			streaming = false;
+			abort = null;
 			inputEl?.focus();
 		}
 	}
 
-	async function ask(text: string) {
+	/** false = abgebrochen, dann bricht auch die Queue-Abarbeitung ab. */
+	async function ask(text: string): Promise<boolean> {
 		messages = [...messages, { role: 'user', content: text }, { role: 'assistant', content: '' }];
 		const target = messages.length - 1;
 		scrollDown(true);
+		abort = new AbortController();
 
 		try {
 			const res = await fetch('/api/chat', {
 				method: 'POST',
 				headers: { 'content-type': 'application/json' },
+				signal: abort.signal,
 				body: JSON.stringify({ messages: messages.slice(0, -1), backend })
 			});
 			if (!res.ok || !res.body) throw new Error(`Fehler ${res.status}`);
@@ -145,8 +160,13 @@
 				errorMsg = 'Keine Antwort erhalten.';
 			}
 		} catch (e) {
+			if ((e as Error).name === 'AbortError') {
+				messages[target].content += messages[target].content ? ' […]' : '[abgebrochen]';
+				return false;
+			}
 			errorMsg = (e as Error).message;
 		}
+		return true;
 	}
 
 	function onKey(e: KeyboardEvent) {
@@ -216,6 +236,9 @@
 			onkeydown={onKey}
 			bind:this={inputEl}
 		/>
+		{#if streaming}
+			<button class="stop" onclick={stop} title="Antwort abbrechen" aria-label="Abbrechen">■</button>
+		{/if}
 		<button class="go" onclick={send} disabled={!input.trim()} title="Senden">
 			{streaming ? '…' : '>'}
 		</button>
@@ -370,5 +393,16 @@
 		flex: 0 0 auto;
 		min-width: 2.6rem;
 		font-weight: 700;
+	}
+	.stop {
+		flex: 0 0 auto;
+		min-width: 2.6rem;
+		color: var(--down);
+		border-color: var(--down);
+	}
+	.stop:hover {
+		border-color: var(--down);
+		box-shadow: var(--down-glow);
+		background: var(--bg-card-hover);
 	}
 </style>
