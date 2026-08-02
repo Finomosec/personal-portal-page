@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { tick } from 'svelte';
 	import { browser } from '$app/environment';
 	import type { Service, ChatMessage, AiClientConfig } from '$lib/types';
 
@@ -22,6 +23,7 @@
 	let blocked = $state<Record<number, boolean>>({});
 	let logEl = $state<HTMLDivElement | null>(null);
 	let inputEl = $state<HTMLInputElement | null>(null);
+	let stick = $state(true);
 
 	const expanded = $derived(messages.length > 0);
 
@@ -36,10 +38,23 @@
 		pending = [];
 		errorMsg = '';
 		input = '';
+		stick = true;
 		inputEl?.focus();
 	}
 
-	function scrollDown() {
+	/**
+	 * Mitscrollen nur, solange der Nutzer unten steht — wer hochgescrollt hat,
+	 * um etwas nachzulesen, soll vom nachlaufenden Text nicht weggerissen werden.
+	 */
+	function onScroll() {
+		if (!logEl) return;
+		stick = logEl.scrollHeight - logEl.scrollTop - logEl.clientHeight < 24;
+	}
+
+	async function scrollDown(force = false) {
+		if (force) stick = true;
+		if (!stick) return;
+		await tick();
 		if (logEl) logEl.scrollTop = logEl.scrollHeight;
 	}
 
@@ -53,6 +68,7 @@
 		if (!text) return;
 		input = '';
 		pending = [...pending, text];
+		scrollDown(true);
 		if (!streaming) drain();
 	}
 
@@ -74,6 +90,7 @@
 	async function ask(text: string) {
 		messages = [...messages, { role: 'user', content: text }, { role: 'assistant', content: '' }];
 		const target = messages.length - 1;
+		scrollDown(true);
 
 		try {
 			const res = await fetch('/api/chat', {
@@ -142,7 +159,7 @@
 
 <section class="ai" class:expanded>
 	{#if expanded}
-		<div class="log" bind:this={logEl}>
+		<div class="log" bind:this={logEl} onscroll={onScroll}>
 			{#each messages as m, i}
 				<div class="msg {m.role}">
 					<span class="who">{m.role === 'user' ? '>' : '#'}</span>
