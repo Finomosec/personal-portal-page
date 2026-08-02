@@ -12,6 +12,25 @@ import type { ChatMessage } from '$lib/types';
 const MAX_HISTORY = 12;
 
 /**
+ * Das Modell kennt keine Adressen, erfindet sie aber trotzdem gern. Ein Prompt
+ * allein reicht nicht: streng formuliert bringt er kleine Modelle dazu, gar
+ * keine Dienste mehr zu öffnen. Deshalb hart serverseitig entfernen.
+ */
+const URL_RE =
+	/\b(?:https?:\/\/|www\.)\S+|\b(?:\d{1,3}\.){3}\d{1,3}(?::\d+)?\b|\b[a-z0-9-]+\.(?:local|lan|internal)\b(?::\d+)?/gi;
+
+function stripUrls(text: string): string {
+	return text.replace(URL_RE, '…');
+}
+
+/** Angebrochene Wörter zurückhalten, sonst entkommt eine URL zeichenweise. */
+function safePrefix(text: string, final: boolean): string {
+	if (final) return text;
+	const cut = text.lastIndexOf(' ');
+	return cut < 0 ? '' : text.slice(0, cut + 1);
+}
+
+/**
  * Zieht den bisherigen Inhalt von "answer" aus unvollständigem JSON.
  * Nötig, weil das erzwungene Schema die Antwort in JSON verpackt, wir aber
  * schon während der Generierung Text anzeigen wollen (~5 tok/s auf CPU).
@@ -112,13 +131,15 @@ export const POST: RequestHandler = async ({ request }) => {
 							continue;
 						}
 						raw += chunk.choices?.[0]?.delta?.content ?? '';
-						const answer = extractAnswer(raw);
+						const answer = stripUrls(safePrefix(extractAnswer(raw), false));
 						if (answer.length > sent.length) {
 							send({ type: 'delta', text: answer.slice(sent.length) });
 							sent = answer;
 						}
 					}
 				}
+
+				sent = stripUrls(extractAnswer(raw));
 
 				let openService = '';
 				try {
