@@ -113,7 +113,12 @@
 							if (!messages[target].content) messages[target].content = `Öffne ${svc.name}.`;
 							// Ohne frische Nutzergeste greift der Popup-Blocker (die Antwort
 							// kommt Sekunden nach dem Klick) -> null, dann bleibt der Link.
-							blocked[target] = window.open(svc.url, '_blank', 'noopener') === null;
+							// Kein 'noopener'-Feature: das liefert laut Spec immer null und
+							// macht die Erkennung wertlos — die Rückreferenz wird stattdessen
+							// nachträglich gekappt.
+							const win = window.open(svc.url, '_blank');
+							if (win) win.opener = null;
+							blocked[target] = win === null;
 						}
 						scrollDown();
 					}
