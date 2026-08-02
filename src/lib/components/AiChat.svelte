@@ -296,10 +296,6 @@
 		color: var(--down);
 	}
 	.cursor {
-		display: inline-block;
-		font-size: 1.02rem;
-		line-height: 1.35;
-		letter-spacing: 0.03em;
 		color: var(--text-dim);
 		animation: pulse 1.1s ease-in-out infinite;
 	}
