@@ -11,6 +11,32 @@ import type { ChatMessage } from '$lib/types';
 
 const MAX_HISTORY = 12;
 
+type Turn = { role: 'user' | 'assistant'; content: string };
+
+/**
+ * Mistral-Templates (Devstral in LM Studio) brechen mit einer Jinja-Exception ab,
+ * wenn die Rollen nicht ab der ersten Nachricht alternieren. Abgebrochene Turns
+ * lassen leere Einträge zurück, und das Kürzen auf MAX_HISTORY trifft eine
+ * ungerade Liste — beides verletzt die Regel.
+ */
+function normalizeHistory(history: ChatMessage[]): Turn[] {
+	const turns: Turn[] = [];
+	for (const m of history) {
+		const content = String(m.content ?? '')
+			.slice(0, 4000)
+			.trim();
+		if (!content) continue;
+		const role = m.role === 'assistant' ? 'assistant' : 'user';
+		const prev = turns.at(-1);
+		if (prev?.role === role) prev.content += '\n' + content;
+		else turns.push({ role, content });
+	}
+	while (turns.length && turns[0].role !== 'user') turns.shift();
+
+	const start = Math.max(0, turns.length - MAX_HISTORY);
+	return turns.slice(start + (turns[start]?.role === 'assistant' ? 1 : 0));
+}
+
 /**
  * Zieht den bisherigen Inhalt von "answer" aus unvollständigem JSON.
  * Nötig, weil das erzwungene Schema die Antwort in JSON verpackt, wir aber
@@ -51,13 +77,10 @@ export const POST: RequestHandler = async ({ request }) => {
 	if (!history.length) throw error(400, 'messages required');
 
 	const backend = resolveBackend(body?.backend);
-	const messages = [
-		{ role: 'system', content: systemPrompt(backend) },
-		...history.slice(-MAX_HISTORY).map((m) => ({
-			role: m.role === 'assistant' ? 'assistant' : 'user',
-			content: String(m.content ?? '').slice(0, 4000)
-		}))
-	];
+	const recent = normalizeHistory(history);
+	if (!recent.length) throw error(400, 'messages required');
+
+	const messages = [{ role: 'system', content: systemPrompt(backend) }, ...recent];
 
 	let upstream: Response;
 	try {
