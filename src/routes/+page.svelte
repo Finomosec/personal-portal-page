@@ -333,8 +333,10 @@
 							<div class="card-body">
 								<!-- desc-Container immer rendern (auch leer), sonst rutscht der Host-Badge nach links -->
 								<p class="desc" lang="de">{svc.description ?? ''}</p>
-								<span class="host" title={data.hosts[svc.host]?.name ?? svc.host}
-									>{data.hosts[svc.host]?.shortName ?? svc.host}</span>
+								{#if data.hosts[svc.host]?.shortName ?? svc.host}
+									<span class="host" title={data.hosts[svc.host]?.name ?? svc.host}
+										>{data.hosts[svc.host]?.shortName ?? svc.host}</span>
+								{/if}
 							</div>
 						</a>
 					{/each}
