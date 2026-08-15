@@ -68,7 +68,7 @@
 		}
 		if (!search.trim()) return true;
 		const q = search.toLowerCase();
-		const hostName = data.hosts[s.host]?.name ?? s.host;
+		const hostName = data.hosts[s.host]?.name ?? s.host ?? '';
 		return (
 			s.name.toLowerCase().includes(q) ||
 			(s.description ?? '').toLowerCase().includes(q) ||
