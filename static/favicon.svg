@@ -1,0 +1,49 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="-56 -56 586 624">
+  <defs>
+    <g id="flaechen" stroke="#fff" fill="#fff" stroke-linejoin="round" stroke-linecap="round">
+      <path d="M14 163 140 185 99 216 89 266Z"/>
+      <path d="M460 163 334 185 375 216 385 266Z"/>
+      <path d="M237 12 289 124 237 106 185 124Z"/>
+    </g>
+    <g id="linien" stroke="#fff" fill="none" stroke-linejoin="round" stroke-linecap="butt">
+      <path d="M95 213C163 255 237 320 237 446"/>
+      <path d="M379 213C311 255 248 318 243 446"/>
+      <path d="M237 344V112"/>
+    </g>
+    <filter id="weich" x="-25%" y="-25%" width="150%" height="150%">
+      <feGaussianBlur stdDeviation="14"/>
+    </filter>
+    <mask id="ohne-links" maskUnits="userSpaceOnUse" x="0" y="0" width="474" height="512">
+      <rect width="474" height="512" fill="#fff"/>
+      <path d="M95 213C163 255 237 320 237 446" fill="none" stroke="#000" stroke-width="66"/>
+      <path d="M14 163 140 185 99 216 89 266Z" fill="#000" stroke="#000" stroke-width="36" stroke-linejoin="round"/>
+      <circle cx="237" cy="466" r="54" fill="#000"/>
+    </mask>
+    <mask id="ohne-seiten" maskUnits="userSpaceOnUse" x="0" y="0" width="474" height="512">
+      <rect width="474" height="512" fill="#fff"/>
+      <path d="M95 213C163 255 237 320 237 446" fill="none" stroke="#000" stroke-width="66"/>
+      <path d="M379 213C311 255 248 318 246 410" fill="none" stroke="#000" stroke-width="66"/>
+    </mask>
+  </defs>
+  <g filter="url(#weich)" opacity="0.45">
+    <use xlink:href="#flaechen" stroke-width="56"/>
+    <use xlink:href="#linien" stroke-width="86"/>
+    <circle cx="237" cy="466" r="64" fill="#fff"/>
+  </g>
+  <g>
+    <use xlink:href="#flaechen" stroke-width="36"/>
+    <use xlink:href="#linien" stroke-width="66"/>
+    <circle cx="237" cy="466" r="54" fill="#fff"/>
+  </g>
+  <g mask="url(#ohne-seiten)">
+    <path d="M237 12 289 124 237 106 185 124Z" fill="#193633" stroke="#193633" stroke-width="16" stroke-linejoin="round"/>
+    <path d="M214 112 237 104 260 112V320L237 344 214 320Z" fill="#193633"/>
+  </g>
+  <g mask="url(#ohne-links)">
+    <path d="M379 213C311 255 248 318 246 410" fill="none" stroke="#1c7555" stroke-width="46"/>
+    <path d="M460 163 334 185 375 216 385 266Z" fill="#1c7555" stroke="#1c7555" stroke-width="16" stroke-linejoin="round"/>
+  </g>
+  <path d="M95 213C163 255 237 320 237 446" fill="none" stroke="#368c62" stroke-width="46"/>
+  <path d="M14 163 140 185 99 216 89 266Z" fill="#368c62" stroke="#368c62" stroke-width="16" stroke-linejoin="round"/>
+  <circle cx="237" cy="466" r="44" fill="#368c62"/>
+</svg>
