@@ -236,6 +236,7 @@
 			placeholder="Suche (Name, Beschreibung, etc.)"
 			bind:value={search}
 			class="search"
+			autofocus
 		/>
 		{#if adminMode}
 			<div class="host-filters">
