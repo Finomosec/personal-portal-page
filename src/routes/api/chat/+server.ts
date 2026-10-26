@@ -1,4 +1,5 @@
 import { error } from '@sveltejs/kit';
+import { env } from '$env/dynamic/private';
 import type { RequestHandler } from './$types';
 import {
 	aiConfig,
@@ -81,6 +82,7 @@ export const POST: RequestHandler = async ({ request }) => {
 	if (!recent.length) throw error(400, 'messages required');
 
 	const messages = [{ role: 'system', content: systemPrompt(backend) }, ...recent];
+	const apiKey = (backend.apiKeyEnv && env[backend.apiKeyEnv]) || 'local';
 
 	let upstream: Response;
 	try {
@@ -88,7 +90,7 @@ export const POST: RequestHandler = async ({ request }) => {
 			method: 'POST',
 			// Bricht der Browser ab, soll auch das Modell aufhören zu rechnen.
 			signal: request.signal,
-			headers: { 'content-type': 'application/json', authorization: 'Bearer local' },
+			headers: { 'content-type': 'application/json', authorization: `Bearer ${apiKey}` },
 			body: JSON.stringify({
 				model: backend.model,
 				messages,

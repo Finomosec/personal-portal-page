@@ -15,6 +15,7 @@ export interface Service {
 	category: string;
 	description?: string;
 	icon?: string;
+	iconSvg?: string;
 	disabled?: boolean;
 	download?: boolean;
 	healthcheck?: {
@@ -40,6 +41,7 @@ export interface AiBackend {
 	label: string;
 	url: string;
 	model: string;
+	apiKeyEnv?: string;
 }
 
 export interface AiConfig {
