@@ -22,7 +22,19 @@
 	let opened = $state<Record<number, Service>>({});
 	let blocked = $state<Record<number, boolean>>({});
 	let logEl = $state<HTMLDivElement | null>(null);
-	let inputEl = $state<HTMLInputElement | null>(null);
+	let inputEl = $state<HTMLTextAreaElement | null>(null);
+
+	function autoGrow() {
+		if (!inputEl) return;
+		inputEl.style.height = 'auto';
+		inputEl.style.height = `${Math.min(inputEl.scrollHeight + 2, 240)}px`;
+		inputEl.style.overflowY = inputEl.scrollHeight > 238 ? 'auto' : 'hidden';
+	}
+
+	$effect(() => {
+		void input;
+		autoGrow();
+	});
 	let stick = $state(true);
 	let abort: AbortController | null = null;
 
@@ -170,7 +182,7 @@
 	}
 
 	function onKey(e: KeyboardEvent) {
-		if (e.key === 'Enter' && !e.shiftKey) {
+		if (e.key === 'Enter' && !e.shiftKey && !e.isComposing) {
 			e.preventDefault();
 			send();
 		}
@@ -230,14 +242,15 @@
 				</select>
 			</div>
 		{/if}
-		<input
+		<textarea
 			class="prompt"
-			type="text"
+			rows="1"
+			aria-label="Nachricht an die KI"
 			placeholder={expanded ? 'Weiterfragen…' : 'Frag die KI…'}
 			bind:value={input}
 			onkeydown={onKey}
 			bind:this={inputEl}
-		/>
+		></textarea>
 		{#if streaming}
 			<button class="stop" onclick={stop} title="Antwort abbrechen" aria-label="Abbrechen">■</button>
 		{/if}
@@ -356,6 +369,7 @@
 	.row {
 		display: flex;
 		gap: 0.4rem;
+		align-items: flex-end;
 	}
 	/* Wrapper trägt den eigenen Pfeil — der native sitzt zu dicht am Rand */
 	.backend-wrap {
@@ -385,6 +399,7 @@
 		border: 1px solid var(--border-strong);
 		border-radius: var(--radius);
 		padding: 0.5rem 1.9rem 0.5rem 0.6rem;
+		min-height: 2.4rem;
 		cursor: pointer;
 		transition:
 			background 0.12s ease,
@@ -412,15 +427,35 @@
 	.prompt {
 		flex: 1 1 auto;
 		min-width: 0;
+		min-height: 2.4rem;
+		max-height: 240px;
+		resize: none;
+		overflow-y: hidden;
+		font: inherit;
+		line-height: 1.25;
+		color: var(--text);
+		background: var(--bg-card);
+		border: 1px solid var(--border-strong);
+		border-radius: var(--radius);
+		padding: 0.5rem 0.7rem;
+		caret-color: var(--accent);
+		overflow-wrap: anywhere;
+	}
+	.prompt:focus {
+		outline: none;
+		border-color: var(--accent);
+		box-shadow: var(--accent-glow);
 	}
 	.go {
 		flex: 0 0 auto;
 		min-width: 2.6rem;
+		min-height: 2.4rem;
 		font-weight: 700;
 	}
 	.stop {
 		flex: 0 0 auto;
 		min-width: 2.6rem;
+		min-height: 2.4rem;
 		color: var(--down);
 		border-color: var(--down);
 	}
